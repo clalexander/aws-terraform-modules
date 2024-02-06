@@ -6,8 +6,7 @@ This module creates a Lambda function that processes events from an SQS queue.
 
 ```hcl
 module "sqs_lambda_event_processor" {
-  // HERE update the module source
-  source = "github.com/blackglove/terraform-modules//compute/sqs-lambda-event-processor?ref=v1.0.0"
+  source = "github.com/clalexander/aws-terraform-modules//compute/sqs-lambda-event-processor?ref=v1"
 
   service_name = "my-service"
   service_env  = "dev"

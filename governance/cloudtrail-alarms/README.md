@@ -6,14 +6,13 @@ Creates CloudWatch alarms for CloudTrail events.
 
 ```hcl
 module "cloudtrail_alarms" {
-  // HERE update the module source
-  source = "github.com/blackglove/terraform-modules//governance/cloudtrail-alarms?ref=v1.0.0"
+  source = "github.com/clalexander/aws-terraform-modules//governance/cloudtrail-alarms?ref=v1"
 
   cloudtrail_log_group_name = "/aws/cloudtrail/my-cloudtrail"
   cloudtrail_sns_topic_name = "my-cloudtrail-alarms"
 
   tags = {
-    Name = "Black Glove CloudTrail Alarms"
+    Name = "CloudTrail Alarms"
     service-name = "cloudtrail"
     service-visibility = "private"
     service-env = "shared"

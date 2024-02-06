@@ -6,11 +6,10 @@ This module creates a GuardDuty detector for account.
 
 ```hcl
 module "guardduty_member" {
-  // HERE update the module source
-  source = "github.com/blackglove/terraform-modules//governance/guardduty/member?ref=v1.0.0"
+  source = "github.com/clalexander/aws-terraform-modules//governance/guardduty/member?ref=v1"
 
   tags = {
-    Name = "Black Glove GuardDuty Member"
+    Name = "GuardDuty Member"
     service-name = "guardduty"
     service-visibility = "private"
     service-env = "shared"

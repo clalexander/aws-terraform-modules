@@ -6,13 +6,12 @@ Enables AWS Config recording for the account.
 
 ```hcl
 module "config" {
-  // HERE update the module source
-  source = "github.com/blackglove/terraform-modules//governance/config?ref=v1.0.0"
+  source = "github.com/clalexander/aws-terraform-modules//governance/config?ref=v1"
 
   bucket_name = "bucket-name"
 
   tags = {
-    Name = "Black Glove Config"
+    Name = "Config"
     service-name = "config"
     service-visibility = "private"
     service-env = "shared"
