@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.tf'
+      - '.github/workflows/release.yml'
+
+env:
+  DEVELOPMENT_BRANCH: dev
+
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_major_version: ${{ steps.semantic.outputs.new_release_major_version }}
+      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+    # Skip running release workflow on forks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v4
+        id: semantic
+        with:
+          semantic_version: 18.0.0
+          extra_plugins: |
+            @semantic-release/changelog@6.0.0
+            @semantic-release/git@10.0.0
+            conventional-changelog-conventionalcommits@4.6.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+  update-main-version:
+    name: Update Main Version
+    if: ${{ github.ref == 'refs/heads/main' && needs.release.outputs.new_release_published == 'true' }}
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Git config
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      - name: Tag new target
+        run: git tag -f v${{ needs.release.outputs.new_release_major_version }} ${{ needs.release.outputs.new_release_git_tag }}
+      - name: Push new tag
+        run: git push origin v${{ needs.release.outputs.new_release_major_version }} --force
+  
+  rebase:
+    name: Rebase
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: release
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Rebase
+        run: |
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config --global user.name "@$GITHUB_ACTOR"
+          git status
+          set -o xtrace
+          git fetch origin main
+          git pull
+          git fetch origin $DEVELOPMENT_BRANCH
+          git checkout -b origin/$DEVELOPMENT_BRANCH
+          git rebase origin/main
+          git push origin origin/$DEVELOPMENT_BRANCH:$DEVELOPMENT_BRANCH
